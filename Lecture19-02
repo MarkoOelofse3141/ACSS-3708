@@ -1,0 +1,146 @@
+#Hash is for comments
+
+A <- 2
+A = 2
+
+3->B
+
+A
+B
+
+C=4
+C
+
+#Vectors
+D<-c(1,2,3)
+E<-c(2,4,6,8)
+F<-c(3,6,9,12,15)
+G<-c(7:12)
+
+#Manupulation - [] looks inside a vector at the position indicated
+D[2]
+F[3]
+G[2:4]
+G<10 #True or false
+G[G<10] #Shows the value of the true elements
+
+H=seq(3,28,5) #Function for: From, To, Steps of
+H
+G
+G>=11
+H[G>=11] 
+
+#Find the G values that Correspond to H less than 20
+G[H<20]
+#To do this the lengths of the vectors must be equal
+
+#######Warning If the lenths do not match, R will recycle the vectors 
+D
+G
+D>=2
+G[D>=2]
+cbind(G,D>=2)
+cbind(F,D)
+
+
+D
+D+1
+D*2
+D-1
+D/2
+
+D==2 #Check to find elements of value
+D!=2 #Check to find elemnts not equal to
+
+
+###########
+#Take the 1,2,3 vector and multiply the 3rd element with 4
+Strange_D1= D*c(1,1,4)
+Strange_D1
+Strange_D2=c(D[1:2],D[3]*4)
+Strange_D2
+
+Even=seq(2,8,2)
+Odd=seq(1,11,2)
+Even+Odd
+Even*Odd
+
+
+########Matrix
+A_Matrix=matrix(data=c(1:9),nrow=3,ncol=3,byrow=TRUE)
+A_Matrix
+
+#B matrix only odd numbers 3x3
+B_Matrix=matrix(data=seq(1,17,2),nrow=3,ncol=3,byrow=TRUE)
+B_Matrix
+
+A_Matrix[2,3]
+A_Matrix[3,]
+A_Matrix[,2]
+A_Matrix[1,2:3]
+A_Matrix[c(1,3),1]
+
+A_Matrix>5
+A_Matrix[A_Matrix>5]
+
+
+A_Matrix+B_Matrix
+A_Matrix*B_Matrix #Term by term multiplication
+
+A_Matrix%*%B_Matrix #Correct matrix multiplication
+
+
+#########################################################
+
+#MARKOV CHAINS
+
+#########################################################
+
+#Sunny Cloudy Rainy Markov Chain
+
+P=matrix(data=c(0.6,0.3,0.1,
+                0.3,0.2,0.5,
+                0.2,0.3,0.5),
+         nrow=3,ncol=3, byrow=TRUE)
+rownames(P)=c("Sunny","Cloudy","Rainy")
+colnames(P)=c("Sunny","Cloudy","Rainy")
+P
+
+P[1,3]
+P["Sunny","Rainy"]
+
+P_Two_Step=P%*%P
+P_Two_Step["Sunny","Rainy"]
+
+P_Nine_Step=P%*%P%*%P%*%P%*%P%*%P%*%P%*%P%*%P
+P_Nine_Step
+P_Nine_Step["Sunny",'Rainy']
+
+for (i in 1:10){
+  print(i)
+}
+
+for (i in 1:10){
+  print(i^2-3)
+}
+
+
+Summer=function(Input1,Input2){
+  Output=Input1+Input2
+  return(Output)
+}
+
+Summer(Input1=2,Input2=3)
+
+Minusser=function(X,Z){
+  K=X+Z
+  return(K)
+}
+Minusser(8,12)
+
+Dividerer=function(M,N){
+  L=M/N
+  return(L)
+}
+Dividerer(7,49)
+
