@@ -1,0 +1,41 @@
+rm(list= ls())
+
+P= matrix(data=c(0,1,0,0,
+                       0.5,0,0.5,0,
+                       0,0.5,0,0.5,
+                       0,0,1,0), nrow=4,ncol=4,byrow=TRUE)
+
+P
+
+rowSums(P) # Important check NB should be 1
+
+MatrixPower= function(P,n){
+  MP=diag(nrow=nrow(P))
+  for(i in 1:n){
+    MP=MP%*%P
+  }
+  return(MP)
+}
+Even_Step_Long_Term_Dist=MatrixPower(P,100)
+Even_Step_Long_Term_Dist
+
+Odd_Step_Long_Term_Dist=MatrixPower(P,101)
+Odd_Step_Long_Term_Dist
+
+Stationary_Dist=1/2*(Even_Step_Long_Term_Dist+Odd_Step_Long_Term_Dist)
+Stationary_Dist
+
+MatrixPower(P,100)[1:4]
+
+#Example
+
+#From Rainy we have a 20% chance to stay rainy, and an even chance of moving to the other states
+#From Sunny, we stay in sunny 60% of the time, move to cloudy 30% or we move to rainy
+# From cloudy, if yesterday was cloudy, it wil centainly rain, if not, we remain in cloudy 20% of the time or move equally to sunny or rainy
+
+A=matrix(data=c(0.2,0.4,0.4,0,
+                0.1,0.6,0.3,0,
+                0.4,0.3,0,0.2,
+                1,0,0,0),
+         ncol=4,nrow=4,byrow=TRUE)
+A
