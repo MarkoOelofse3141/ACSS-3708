@@ -144,3 +144,18 @@ Dividerer=function(M,N){
 }
 Dividerer(7,49)
 
+# Use a loop to do matrix multiplication
+
+Matrix_Power= function (P,n){
+  MP = diag(nrow=nrow(P))
+  for (i in 1:n) {
+    
+    MP = MP%*%P
+   
+  }
+  return(MP)
+}
+Matrix_Power(P,4)
+
+
+
