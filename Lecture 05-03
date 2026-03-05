@@ -1,0 +1,93 @@
+A=matrix(data=c(-1/80, 1/160, 1/320, 1/320, 0   ,
+                0    , -1/50, 1/100, 1/100, 0   ,
+                0    ,0     ,-1/25 , 1/25 , 0   ,
+                0    ,0     , 0    ,-1/50 , 1/50,
+                0    ,0     , 0    , 0    , 0    ),
+               ncol=5, nrow=5, byrow=TRUE)
+
+rowSums(A)
+State_Names= c("A", 'B', "C", "D", "Done")
+rownames(A)=State_Names
+colnames(A)=State_Names
+A
+
+# Ph=I+A*h +o(h)
+# where o(h)= some function that tends to 0 as h tends to 0
+
+# In this question my unit times are in minutes
+#If I were to make it secondly, perhaps to the above approxomation will hold
+
+h=1/60/100
+
+Ph=diag(nrow=nrow(A))+A*h
+Ph
+rowSums(Ph)
+#PAA(20)= Prob of stay staying in A for 20 minutes
+P_AA_Twenty_T=exp(-1/80*20)
+P_AA_Twenty_T
+
+
+MatrixPower=function(P,n){
+  MP=diag(nrow=nrow(P))
+  for (i in 1:n) {
+    MP=MP%*%P
+  }
+  rownames(MP)= State_Names
+  colnames(MP)= State_Names
+  return(MP)
+}
+
+P_AA_Twenty_T=MatrixPower(Ph,20*60*100)[1,1]
+P_AA_Twenty_T
+
+P_AA_Twenty_h=MatrixPower(Ph,20/h)[1,1]
+P_AA_Twenty_h
+
+P_BB_2hours_T=exp(-1/50*120)
+P_BB_2hours_h=MatrixPower(Ph,120/h)[2,2]
+
+P_BB_2hours_T
+P_BB_2hours_h
+
+P_CC_180sec_T=exp(-1/25*3)
+P_Cc_180sec_h=MatrixPower(Ph,3/h)[3,3]
+
+P_CC_180sec_T
+P_Cc_180sec_h
+
+P_BD_90min_T= 1/100*(90)*exp(-1/50*90)+exp(-1/50*90)-exp(-1/25*90)
+P_BD_90min_T
+
+P_CDone_3hours_T=1-exp(-1/25*180)-2*exp(-1/50*180)
+P_CDone_3hours_T
+
+P_CDone_3hours_h=MatrixPower(Ph,180/h)["C","Done"]
+P_CDone_3hours_h
+
+P_AB_1.5hours_T=5/6*exp(-180*90)-5/6*exp(-1/50*90)
+P_AB_1.5hours_T
+P_AB_1.5hours_h= MatrixPower(Ph,90/h)["A","B"]
+P_AB_1.5hours_h
+
+# how much time to be 90% sure of done
+# entered state C
+
+Minutes=seq(0,30000,2)
+Num_Minutes=length(Minutes)
+
+Probs_of_Done= vector(length=Num_Minutes)
+Probs_of_Done
+
+for (i in 1:Num_Minutes){
+  Prob=MatrixPower(Ph,Minutes[i]/h)["C","Done"]
+  Probs_of_Done[i]=Prob
+}
+plot(Minutes,Probs_of_Done)
+abline(h=0.9)
+
+
+
+
+
+
+
