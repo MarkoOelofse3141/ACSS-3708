@@ -1,0 +1,67 @@
+A=matrix(data=c(-1/80, 1/160, 1/320, 1/320, 0   ,
+                0    , -1/50, 1/100, 1/100, 0   ,
+                0    , 0    , -1/25, 1/25 , 0   ,
+                0    , 0    , 0    ,-1/50 , 1/50,
+                0    , 0    , 0    , 0    , 0   ),
+         ncol=5, nrow=5, byrow = TRUE)
+state_names=c("A","B","C","D","Done")
+rowSums(A)
+colnames(A)=state_names
+rownames(A)=state_names
+A
+
+# Our transition rates are in minutes, so this is our time scale
+
+#Ph=I+A*h+o(h), where o(h)->0, as h->0
+h=1/60/100
+Ph= diag(nrow=nrow(A))+A*h
+Ph
+rowSums(Ph)
+
+#test against theory PAA(20), PBB(40), PCC(15)
+
+MatrixPower=function(P,n){
+  MP=diag(nrow=nrow(P))
+  for (i in 1:n){
+    MP=MP%*%P
+  }
+  rownames(MP)=rownames(P)
+  colnames(MP)=rownames(P)
+  return(MP)
+}
+
+PAA_T=exp(-1/80*20)
+PAA_T
+PAA_h=MatrixPower(Ph,20/h)["A","A"]
+PAA_h
+
+PBB_T=exp(-1/50*40)
+PBB_T
+PBB_h=MatrixPower(P=Ph, 40/h)["B","B"]
+PBB_h
+
+PCC_T=exp(-1/25*15)
+PCC_T
+PCC_h=MatrixPower(P=Ph, 15/h)["C","C"]
+PCC_h
+
+#P_BD(t)=3/100*t*exp(-1/50t)+exp(-1/25t)-exp(-1/50t)
+P_BD_t=function(t) {3/100*t*exp(-1/50*t)+exp(-1/25*t)-exp(-1/50*t)}
+P_BD_t(100)
+P_BD_M= MatrixPower(Ph,100/h)["B","D"]
+P_BD_M
+
+
+# Calculate the following probs:
+# CD in 3 minutes
+# BDone on 2 hours
+# ADone in quater of a day
+
+PCD_h=MatrixPower(Ph,3/h)["C", "D"]
+PCD_h
+
+PBDone_h=MatrixPower(Ph,2*60/h)["B","Done"]
+PBDone_h
+
+PADone_h=MatrixPower(Ph,6*60/h)["A","Done"]
+PADone_h
