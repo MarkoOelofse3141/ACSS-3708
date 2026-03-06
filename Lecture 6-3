@@ -65,3 +65,37 @@ PBDone_h
 
 PADone_h=MatrixPower(Ph,6*60/h)["A","Done"]
 PADone_h
+
+# How much time to allow for the tutoril, to be 80% sure of completion
+ts=seq(0,360,5)
+Num_ts=length(ts)
+Probs_of_Done=vector(length=Num_ts)
+
+for (i in 1:Num_ts){
+  Probs_of_Done[i]=MatrixPower(Ph,ts[i]/h)["A","Done"]
+}
+plot(ts, Probs_of_Done)
+abline(h=0.8)
+abline(v=240)
+
+BestProb=min(Probs_of_Done[Probs_of_Done>0.8])
+BestProb
+
+BestTime=ts[Probs_of_Done == BestProb]
+BestTime
+
+# At what time am I most likely to finish
+Diff_Probs = diff(Probs_of_Done)
+plot(Diff_Probs)
+Newts=seq(5,360,5)
+plot(Newts,Diff_Probs)
+
+Highest_Lik=max(Diff_Probs)
+Corr_t=Newts[Diff_Probs==Highest_Lik]
+Corr_t
+
+abline(h=Highest_Lik)
+abline(v=Corr_t)
+
+plot(x=Newts, y=Diff_Probs, main="Prob of finishing during tth interval",xlab="t",ylab="Likelihood",type="l",lty=2,col="tomato")
+
