@@ -1,0 +1,138 @@
+options(scipen=999) #takes scitienfic notation away
+
+#Gompertz: muX=Bc^x
+B=0.000007
+c=1.13
+
+AgeRange=seq(0,120)
+AgeRange
+
+
+mux=B*c^AgeRange
+mux
+
+plot(AgeRange,mux,type="h", main="Force of Mortality",xlab="Age",ylab="Rate")
+
+####Life expectancy and Retirement prob for a 21 year old
+
+mu=function(x){
+  B*c^x
+}
+mu(50)
+
+prob_21_to_65=exp(-integrate(f=mu,lower=21,upper=65)$value)
+prob_21_to_65
+
+g=exp(-B/log(c))
+
+tPx=function(x,t){
+  g^((c^x)*((c^t)-1))
+}
+
+tPx(21,44)
+
+tPx(90,10)
+
+#calculationg conditional death probs
+
+atQx=function(x,a,t){
+  tPx(x,a)*(1-tPx(x+a,t))
+}
+
+atQx(21,39,5)
+
+# Complete life expectancy
+
+edot21=integrate(f=tPx,lower=0,upper=Inf,x=21)$value
+edot21
+
+edotx=function(x){
+  integrate(f=tPx,lower=0,upper=Inf,x=x)$value
+  }
+
+edotx(21)
+edotx(0)
+edotx(100)
+
+
+# Life Table
+
+lo=1000
+l1=lo*tPx(0,1)
+l2=lo**tPx(0,2)
+
+StartAge=0
+EndAge=120
+
+Ages=seq(StartAge,EndAge,1)
+NumAges=length(Ages)
+Lives=vector(length=NumAges)
+Lives[1]=1000
+
+for (i in 2:NumAges){
+  Lives[i]=round(Lives[1]*tPx(0,i-1),5)
+}
+cbind(Ages,Lives)
+
+plot(Ages,Lives,type="h")
+
+
+# 21 to retirement
+
+tPx_LT=function(x,a){
+  Lives[Ages == x+a]/Lives[Ages == x]
+}
+
+tPx_LT(21,44)
+tPx_LT(0,21)
+tPx_LT(21,30)
+
+
+#Curtate
+
+# my method
+
+curtate=function(x,t){
+  totalsum=0
+  for (i in 1:t){
+    totalsum=totalsum+tPx_LT(x,i)
+  }
+  return(totalsum)
+}
+curtate(21,99)
+
+
+From=21
+To=120
+Ks=seq(1,To-From,1)
+NumKs=length(Ks)
+KP21s=vector(length=NumKs)
+for (i in 1:NumKs){
+  KP21s[i]=tPx_LT(21,Ks[i])
+}
+e21=sum(KP21s)
+e21
+
+
+ex=function(x){
+  NumAgesConsider=120-x
+  kPx=vector(length=NumAgesConsider)
+  for(i in 1:NumAgesConsider){
+    kPx[i]=tPx_LT(x,i)
+  }
+  return(sum(kPx))
+  
+}
+
+ex(21)
+edotx(21)-0.5
+
+# Central Rate of Mortality
+
+mxs=mu(Ages+0.5)
+cbind(Ages,mxs)
+
+# 21 to 65?
+
+P_21_to_65_CRM=exp(-sum(mxs[Ages<65 & Ages>=21]))
+P_21_to_65_CRM
