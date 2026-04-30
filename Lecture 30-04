@@ -1,0 +1,57 @@
+data=read.csv("//mcsfs01/users$/2025642345/Downloads/Ch9Datav2 (1).csv")
+data
+
+life_num=data$LIFE
+life_num
+
+DOB_string=data$BirthDate #String
+DOB_string
+DOB=as.Date(data$BirthDate, format="%d %m %Y")
+DOB
+
+DOJ=as.Date(data$PolicyStart, format="%d %m %Y")
+DOJ
+
+DOE=as.Date(data$DateOfLeaving, format="%d %m %Y")
+DOE
+DOE[is.na(DOE)]=as.Date("9999/31/12", format= "%Y/%d/%m")
+DOE
+reason=data$ReasonForLeaving
+reason
+
+#study period 1 Jan 2013 to 1 Jan 2018
+study_start=as.Date("1 01 2013", format="%d %m %Y") # or study_start=as.Date("1 01 2013", format="%d %B %Y")
+study_start
+
+study_end=as.Date("1/1/18", format="%d/%m/%y")
+study_end
+
+#study 30 year olds, age last birthday
+
+Date30=DOB+30*365.25
+Date30
+Date31=DOB+31*365.25
+Date31
+
+Count_start=pmax(Date30,study_start, DOJ)
+Count_start
+
+Count_end=pmin(Date31, study_end,DOE)
+Count_end
+
+Exposure_time=as.numeric(pmax(Count_end-Count_start,0)/365.25)
+head(Exposure_time, n=50)
+max(Exposure_time)
+
+Exposed_to_risk=sum(Exposure_time)
+Exposed_to_risk
+
+#Find d30, those who died between ages 30 and 31
+#, amd under obeservation
+
+Age_at_exit= as.numeric((DOE-DOB)/365.25)
+d30=length(life_num[Age_at_exit>=30 & Age_at_exit<=31 & reason=="Death" & Exposure_time>0])
+d30
+
+mu30=d30/Exposed_to_risk
+mu30
