@@ -1,0 +1,95 @@
+rm(list=ls())
+
+
+data=read.csv("~/3de jaar/ACSS 3708/R/CrudeAndST.csv")
+data
+
+age = data$Age
+crude = data$CrudeRates
+ETR = data$ExposedToRisk
+ST = data$Standard.Table
+
+plot(age,crude)
+lines(age,ST)
+
+## Graduate the standard table, on ages 40 to 55
+
+ages_of_concern = age[age>=40 & age<=55]
+ages_of_concern
+
+numages=length(ages_of_concern)
+
+crudes_of_concern = crude[age>=40 & age<=55]
+crudes_of_concern
+
+ST_of_concern = ST[age>=40 & age<=55]
+ST_of_concern
+
+plot(ages_of_concern, crudes_of_concern, ylim=c(0,max(crudes_of_concern)))
+lines(ages_of_concern, ST_of_concern)
+
+## crude = A+B*ST
+
+regression =lm(crudes_of_concern~ST_of_concern)
+regression
+A = regression$coefficient[1]
+B = regression$coefficient[2]
+
+graduated_rates = A+B*ST_of_concern
+lines(ages_of_concern,graduated_rates, lty=2, col="red")
+
+## Smoothness can be confirmed visually, or by acknowldging that ST rates
+## are presumed smooth enough
+
+## Adhrence to data?
+
+## GOF
+
+ETR_of_concern = ETR[age>=40 &  age<=55]
+ETR_of_concern
+
+O = crudes_of_concern*ETR_of_concern
+O
+
+E=graduated_rates*ETR_of_concern
+E
+
+plot(ages_of_concern,O)
+lines(ages_of_concern,E, col="blue")
+
+zx=(O-E)/sqrt(E)
+zx
+
+zx2=zx^2
+zx2
+
+TestStatChi=sum(zx2)
+TestStatChi
+
+DoF = numages - 2 - 1
+
+critvalChiSq = qchisq(p = 0.95, df = DoF)
+critvalChiSq
+
+## There is no evidence to suggest that the graduated rates does not fit the crude rates well
+
+## Ourliers?
+
+plot(zx)
+
+## there is no large deviations in the standardised differences
+## hence no specific outlier investigation is needed
+
+## overall bias
+
+NumPos = length(zx[zx>0])
+PVal_SignTest=2*pbinom(q=NumPos, size = numages, prob=0.5)
+PVal_SignTest
+## There is no evidence to suggest that the graduation intri=oduces overall bias 
+## (consistently too high or too low graduated rates)
+
+## Serial corrrelation?
+
+acf(zx, lag.max = 5)
+## There is no evidence of autocorrelation
+## hence no reason to believe that the function form of the graduated rates is inappropriate
