@@ -1,0 +1,81 @@
+data = read.csv2("//mcsfs01/users$/2024974525/Desktop/ACSS/CrudeRates.csv")
+data$CrudeRates = as.numeric(data$CrudeRates)
+Age = data$Age
+Crude = as.numeric(data$CrudeRates)
+plot(Age, Crude, main = "Rates", xlab = "Age", )
+
+
+#μ_x = BC^x
+#log(μ_x) = logB + xlogC
+#=c + mx
+
+logCrude = log(Crude)
+
+Regression = lm(logCrude ~ Age)
+logB = Regression$coefficients[1]
+logC = Regression$coefficients[2]
+B = exp(logB) 
+C = exp(logC)
+
+GradRates = B*C^Age
+lines(Age, GradRates)
+legend("topleft", legend = c("Crude", "GradRates"), lty = c(NA, 1), pch=c(1,NA), bty = "n")
+
+ETR = data$ExposedToRisk
+
+#μhat = d/ETS thus d = μ*ETR
+
+O = Crude*ETR #Observed Deaths
+E = GradRates*ETR #Expected Deaths
+cbind(Age, O, E, O-E)
+
+zx = (O - E)/sqrt(E)
+
+plot(zx)
+abline(h =1.96, col = "red")
+abline(h =-1.96, col = "red")
+
+##ChiSq Test 
+
+TestStat_ChiSQT =sum(zx^2)
+TestStat_ChiSQT
+
+NumAges =length(zx)
+Dof = NumAges - 2 
+
+#dchisq() pdf ; pchisq() = cdf ; qchisq() = inverse cdf ; rdchisq() = randoms 
+
+#Pavl = P(ChiSq >= Teststat)
+Pval_ChiSQT = 1 - pchisq(TestStat_ChiSQT, Dof)
+Pval_ChiSQT
+
+#CritValue
+CritValue_ChiSQT = qchisq(0.95,Dof)
+CritValue_ChiSQT
+
+##There is no evidence to suggest that the graduated rates does not adhere to the crude rates
+
+###Signs Test
+
+NumPos = length(zx[zx>0])
+NumPos 
+
+#PVal = P(NumPos >= 16 + P(NumPos <= 15))
+PVal_SignTest = (1-pbinom(15, size = NumAges, 0.5)) + pbinom(15, size = NumAges, 0.5)
+PVal_SignTest
+
+CritVal_SignTest = qbinom(c(0.025,0.975), size =NumAges, 0.5)
+CritVal_SignTest
+
+#Observing a 16 out of 31 positive ratio, does not give any evidence of overall bias
+
+##Serial Correlation or Clumping Bias
+acf(zx, lag.max = 5)
+
+
+
+
+
+
+
+
