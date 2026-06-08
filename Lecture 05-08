@@ -1,4 +1,4 @@
-data = read.csv2("//mcsfs01/users$/2024974525/Desktop/ACSS/CrudeRates.csv")
+data = read.csv2("~/3de jaar/ACSS 3708/R/CrudeRates.csv"")
 data$CrudeRates = as.numeric(data$CrudeRates)
 Age = data$Age
 Crude = as.numeric(data$CrudeRates)
