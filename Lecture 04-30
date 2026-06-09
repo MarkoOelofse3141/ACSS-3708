@@ -1,4 +1,4 @@
-data=read.csv("//mcsfs01/users$/2025642345/Downloads/Ch9Datav2 (1).csv")
+data=read.csv("~/3de jaar/ACSS 3708/R/Ch9Datav2.csv")
 data
 
 life_num=data$LIFE
