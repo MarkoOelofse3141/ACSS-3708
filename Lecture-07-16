@@ -1,0 +1,88 @@
+options(scipen = 999)
+rm(list = ls())
+
+##Force of Mortality
+#Gompertz muX = Bc^x
+
+B = 0.000006
+c = 1.13
+
+#q_x,t = q_x0 * R_x,t
+
+#  mx /appprox. μ_x+0.5
+#p_x  = e^-m_x
+#Q_x = 1 - p_X
+
+Ages = seq(0, 119, 1)
+muX = B*c^(Ages)
+mx = B*c^(Ages+0.5)
+px = exp(-mx)
+qx = 1-px
+cbind(Ages, qx)
+
+plot(Ages, qx, type = "l")
+
+# IF page 109 is correct, how different is retirement prob with vs without morality projections
+
+
+ax = function(x){
+  ifelse(x<60,0.13, ifelse(x>110,1,1-0.87*((110-x)/50)))
+}
+plot(Ages, ax(Ages))
+
+
+fx = function(x){
+  ifelse(x<60,0.55,ifelse(x>110,0.29,0.55*((110-x)/50)+0.29*((x-60)/50)))
+}
+
+plot(Ages,fx(Ages))
+
+RedF = function(x,t){
+  ax(x) + (1-ax(x))*(1-fx(x))^(t/20)
+}
+
+ts = seq(0,100,1)
+RedFagelocked = RedF(x =21, t=ts)
+plot(ts, RedFagelocked)
+
+RedFtlocked = RedF(x =Ages, t= 20)
+plot(Ages, RedFtlocked)
+
+q20 = qx*RedF(x = Ages,20)
+plot(Ages[Ages >= 25 & Ages<65], qx[Ages >= 25 & Ages<65])
+lines(Ages[Ages >= 25 & Ages<65], q20[Ages >= 25 & Ages<65])
+legend("topleft", legend = c("Current", "Future"), pch=c(1,NA), lty =c(NA,1), bty = "n")
+
+#####
+#25 0
+#26 1
+#27 2
+#...
+
+StartAge = 25
+EndAge = 65
+AgeofConcern = seq(StartAge, EndAge-1)
+AgeofConcern
+NumAges = length(AgeofConcern)
+t =  seq(0,NumAges-1,1)
+cbind(AgeofConcern,t)
+RedFstore = vector(length = length(NumAges))
+qxstore = vector(length = length(NumAges)) 
+
+
+Follow = for (i in 1:NumAges) {
+  RedFstore[i] = RedF(x = AgeofConcern[i], t =t[i])
+}
+plot(AgeofConcern, RedFstore)
+
+qxindividual = qx[Ages >= StartAge & Ages<EndAge]*RedFstore
+plot(AgeofConcern, qx[Ages >= StartAge & Ages<EndAge])
+lines(AgeofConcern, qxindividual)
+legend("topleft", legend = c("Unadjusted","Adjusted"), pch = c(1,NA), lty = c(NA,1), bty = "n")
+
+#Prob of Retirement
+
+ProbReNoAdj = prod(1-qx[Ages >= StartAge & Ages<EndAge])
+ProbReNoAdj
+ProbReAdj = prod(1-qxindividual)
+ProbReAdj
