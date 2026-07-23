@@ -1,0 +1,117 @@
+rm(list=ls())
+options(scipen=999)
+set.seed(20)
+
+mu=100
+sigma=20
+xs=seq(0,200,1)
+ys=dnorm(x=xs,mean=mu,sd=sigma)
+
+plot(y=ys, x=xs, type="l", xlab="x", ylab="f(x)", main="Norm(100,20^2)")
+
+NumSample=10000
+XSample=rnorm(n=NumSample,mean=mu,sd=sigma)
+
+hist(XSample,freq=FALSE)
+lines(density(XSample),col="red")
+
+#If we do not know the source, can we find te parameters
+#All we have is XSample
+head(XSample)
+
+hist(XSample,freq=FALSE)
+
+EX=mean(XSample)
+EX
+sdX=sd(XSample)
+sdX
+EX3=mean((XSample)^3)
+EX3
+
+COSX=(EX3-3*EX*sdX^2-EX^3)/(sdX^3)
+COSX
+
+
+
+#MOM
+
+muMOM=EX
+sigmaMOM=sdX
+
+MOMPDF=dnorm(xs,mean=muMOM,sd=sigmaMOM)
+hist(XSample, freq=FALSE)
+lines(xs,MOMPDF)
+
+LogL=function(muInput,SigmaInput){
+  sum(log(dnorm(XSample,muInput,SigmaInput)))
+}
+
+LogL(muInput=100,SigmaInput=20)
+LogL(muInput=50,SigmaInput=50)
+LogL(muInput=muMOM,SigmaInput=sigmaMOM)
+
+LogL2=function(params){
+  sum(log(dnorm(XSample,params[1],params[2])))
+}
+
+LogL2(params=c(100,20))
+
+#Minimize the negLogL
+
+negLogL=function(params){
+  -sum(log(dnorm(XSample,params[1],params[2])))
+}
+
+MLENorm=nlm(f=negLogL,p=c(muMOM,sigmaMOM))
+MLENorm
+BestMu=MLENorm$estimate[1]
+BestSigma=MLENorm$estimate[2]
+BestMu;BestSigma
+
+# Is the data perhaps Gamma
+
+lambdaMOM=EX/(sdX^2)
+lambdaMOM
+alphaMOM=EX*lambdaMOM
+alphaMOM
+
+LogLGamma=function(params){
+  sum(log(dgamma(XSample,params[1],params[2])))
+}
+
+LogLGamma(params=c(alphaMOM,lambdaMOM))
+LogL2(params=c(muMOM,sigmaMOM))
+
+# MLE Gamma
+
+negLogL=function(params){
+  -sum(log(dgamma(XSample,params[1],params[2])))
+}
+
+MLEGamma=nlm(f=negLogL,p= c(alphaMOM,lambdaMOM))
+MLEGamma
+BestAlpha=MLEGamma$estimate[1]
+BestLambda=MLEGamma$estimate[2]
+
+LogLGamma(params=c(alphaMOM,lambdaMOM))
+LogLGamma(params=c(BestAlpha,BestLambda))
+
+
+# LogNormal
+
+lsigma2MOM=log((sdX^2)/(EX^2)+1)
+lsigma2MOM
+lsigmaMOM=sqrt(lsigma2MOM)
+lsigmaMOM
+lmuMOM=log(EX)+1/2*lsigma2MOM
+lmuMOM
+lmuMOM;lsigmaMOM
+
+negMLELogNorm=function(params){
+  -sum(log(dlnorm(XSample,params[1],params[2])))
+}
+
+MLELogNorm=nlm(negMLELogNorm,p=c(lmuMOM,lsigmaMOM,typsize=c(lmuMOM,lsigmaMOM)))
+MLELogNorm
+
+MLELogNorm
