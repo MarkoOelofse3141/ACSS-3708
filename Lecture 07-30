@@ -1,0 +1,121 @@
+data = read.csv("//mcsfs01//users$//2024974525//Downloads//Data.csv")
+
+returns =data$Return
+
+plot(density(returns))
+
+EX=mean(returns)
+VarX = var(returns)
+sdx =sd(returns)
+
+negLogL =function(params){
+  -sum(log(dnorm(returns,params[1],params[2])))
+}
+
+MLENorm = nlm(negLogL, p =c(EX,sdx), typsize = c(EX,sdx))
+MLENorm
+
+Best_Mu = MLENorm$estimate[1]
+Best_sigma = MLENorm$estimate[2]
+Best_Mu;Best_sigma
+
+NumSim = 10^5
+NormSim =rnorm(NumSim,Best_Mu,Best_sigma)
+lines(density(NormSim), lty=2, col="red")
+
+qqplot(returns,NormSim)
+abline(0,1)
+
+pp=ppoints(length(returns))
+
+ReturnQ = quantile(returns,pp)
+simQ = quantile(NormSim,pp)
+plot(ReturnQ,simQ)
+abline(0,1)
+
+#Threshold exceedance method
+
+M =quantile(returns,0.8)
+M
+
+#W =x-m|x>m
+
+w = returns[returns>M]-M
+w
+hist(w)
+
+
+WnormSim =NormSim[NormSim>M]-M
+qqplot(w,WnormSim)
+abline(0,1)
+
+###Threshold Exceedance
+###EVT Distributions
+#Exp = GDP(1) or GDP[2]
+
+EW = mean(w)
+lambdaW = 1/EW
+lambdaW
+
+w_sim_Exp =rexp(NumSim,lambdaW)
+qqplot(w,w_sim_Exp)
+abline(0,1)
+
+###GDP[2]
+
+dGPD2 = function(x,g,b){
+  (1/b)*(1+x/(g*b))^(-g-1)
+}
+dGPD2(0.1,0.1,2)
+
+
+#beta = shape
+#gamma = scalw
+
+neglogLGDP2 = function(params){
+  -sum(log(dGPD2(x=w,params[1],params[2])))
+}
+
+Guess = c(1,EW)
+
+MLE_GPD2 = nlm(neglogLGDP2,p=Guess,typsize = Guess)
+MLE_GPD2
+
+Guess2 = c(MLE_GPD2$estimate[1],MLE_GPD2$estimate[2])
+
+MLE_GPD2_2 = nlm(neglogLGDP2,p=Guess2,typsize = Guess2)
+MLE_GPD2_2
+
+#((1-probs)^(1/-g)-1)*(g*b)
+
+rGPD2 = function(n,g,b){
+  ((1-runif(n=n,min=0,max=1))^(-1/g)-1)*(g*b)
+}
+wsim =rGPD2(NumSim,MLE_GPD2$estimate[1],MLE_GPD2$estimate[2])
+qqplot(w,wsim,ylim=c(0,0.6))
+abline(0,1)
+
+#### Which is better
+
+sum(log(dexp(w,lambdaW)))
+
+-neglogLGDP2(params =c(MLE_GPD2$estimate[1],MLE_GPD2$estimate[2]) )
+
+####
+#PDF of thte conditional normal 
+
+dCNorm = function(w,mu,sigma){
+  dnorm(w+M,mu,sigma)/(1-pnorm(M,mu,sigma))
+}
+
+sum(log(dCNorm(w,Best_Mu,Best_sigma)))
+
+hist(w,freq = F)
+ws =seq(0,0.6,0.001)
+ys_exp =dexp(ws,rate = lambdaW)
+lines(ws,ys_exp, col="red")
+ys_GDP2 = dGPD2(x=ws,MLE_GPD2$estimate[1],MLE_GPD2$estimate[2])
+lines(ws,ys_GDP2, col="blue")
+ys_CDnorm = dCNorm(ws,Best_Mu,Best_sigma)
+lines(ws,ys_CDnorm,col="purple")
+
