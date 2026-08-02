@@ -1,0 +1,122 @@
+rm(list=ls())
+set.seed(20)
+
+NumClaims=10*12*100
+mu=8
+sigma=1.2
+Claims=rlnorm(NumClaims,mu,sigma)
+plot(density(Claims))
+
+Month=rep(seq(1,120,1),100)
+head(cbind(Month,Claims),100)
+max(Claims[Month==1])
+
+## Extract the BlockMax data, the maximum claim in each month
+NumBlocks=120
+BlockMax= vector(length = NumBlocks)
+for (i in 1:NumBlocks){
+  BlockMax[i]=max(Claims[Month==i])
+}
+
+lines(density(BlockMax))
+
+## GUMBEL GEV
+
+DGompertz=function(x,a,b){
+  1/b*exp(-(x-a)/b)*exp(-exp(-(x-a)/b))
+}
+
+DGompertz(110,110,1)
+
+EBlockMax=mean(BlockMax)
+sdBlockMax=sd(BlockMax)
+
+negLogL=function(params){
+  -sum(log(DGompertz(x=BlockMax,params[1],params[2])))
+}
+
+Guess=c(EBlockMax,sdBlockMax)
+
+MLE=nlm(negLogL,p=Guess,typsize=Guess)
+MLE
+
+BestA=MLE$estimate[1]
+BestB=MLE$estimate[2]
+
+xs=seq(0,400*10^3,1000)
+ys=DGompertz(xs,BestA,BestB)
+lines(xs,ys,col="red")
+
+## QQ Plot
+
+qGompertz=function(p,a,b){
+  a-b*log(-log(p))
+}
+
+qGompertz(0.5,BestA,BestB)
+
+Qs=ppoints(NumBlocks)
+
+DataQs=quantile(BlockMax,Qs)
+
+cbind(DataQs,sort(BlockMax))
+
+QsGompertz=qGompertz(Qs,BestA,BestB)
+
+cbind(Qs,QsGompertz)
+
+qqplot(DataQs,BlockMax)
+
+abline(0,1)
+
+plot(DataQs,QsGompertz)
+abline(0,1)
+
+##
+rGompertz=function(n,a,b){
+  qGompertz(p=runif(n,0,1),a,b)
+}
+NumSim=10^6
+
+BlockMaxSim=rGompertz(NumSim,BestA,BestB)
+qqplot(BlockMax,BlockMaxSim)
+abline(0,1)
+
+## Draw 3 plots of different block sizes
+## claims -> BlockMAx1, BlockMax2, BlockMx3
+#Block 1 = 1000 blocks
+#Block 2 = 600 blocks
+#Block 3 = 150 blocks
+
+Samples1=sample(x=seq(1,1000,1),size=12000,replace=TRUE)
+Samples1
+head(cbind(Claims,Samples1))
+NumBlocks1=1000
+BlockMax1=vector(length = NumBlocks1)
+for (i in 1:NumBlocks){
+  BlockMax1[i]=Claims[Samples1==i]
+}
+plot(density(Claims),col="Black")
+lines(density(BlockMax1),col="red")
+
+Samples2=sample(x=seq(1,600,1),size=12000,replace=TRUE)
+Samples2
+head(cbind(Claims,Samples2))
+NumBlocks2=600
+BlockMax2=vector(length = NumBlocks1)
+for (i in 1:NumBlocks){
+  BlockMax2[i]=Claims[Samples2==i]
+}
+plot(density(Claims),col="Black")
+lines(density(BlockMax2),col="red")
+
+Samples3=sample(x=seq(1,150,1),size=12000,replace=TRUE)
+Samples3
+head(cbind(Claims,Samples3))
+NumBlocks2=150
+BlockMax3=vector(length = NumBlocks1)
+for (i in 1:NumBlocks){
+  BlockMax3[i]=Claims[Samples3==i]
+}
+plot(density(Claims),col="Black")
+lines(density(BlockMax3),col="red")
