@@ -1,0 +1,77 @@
+# Afggregate XOL 500 in excess of M
+# L=500
+
+# SI= S      S<M
+#     M      M<S<M+500
+#     S-500  S>M+500
+     
+# N~Pois(100)
+# X~Exp(1/20)
+# Loading Ins=20%
+# Loading Re=25%
+
+# Measure=E(Profit)/sd(Profit)
+
+set.seed(20)
+
+mu=100
+lambda=1/20
+
+NumSim=10^4
+
+N=rpois(NumSim,mu)
+S=c()
+for(i in 1:NumSim){
+  X=rexp(N[i],lambda)
+  S[i]=sum(X)
+}
+
+plot(density(S))
+ES=mean(S)
+sdS=sd(S)
+ES;sdS
+
+#AXOL 500 in excess of M
+PremiumIncome=1.2*ES
+L=500
+Ms=seq(1000,3000,10)
+NumMs=length(Ms)
+
+Measure=c()
+
+for(i in 1:NumMs){
+  SI=ifelse(S<Ms[i],S,ifelse(S>=Ms[i]+L,S-L,Ms[i]))
+  ESI=mean(SI)
+  ESR=ES-ESI
+  RePrem=1.25*ESR
+  Profit=PremiumIncome-RePrem-SI
+  EProfit=mean(Profit)
+  sdProfit=sd(Profit)
+  Measure[i]=EProfit/sdProfit
+}
+
+plot(Ms,Measure)
+BestM=Ms[Measure==max(Measure)]
+BestM
+abline(v=BestM,col="red",lwd=2)
+
+#
+
+X=rgamma(NumSim,500,0.001)
+X
+
+NumBlock=50
+
+BlockSeq=seq(1,50,1)
+BlockIndicator=sample(x=BlockSeq,size=NumSim,replace=TRUE)
+
+Maxes=c()
+
+for(i in 1:NumBlock){
+  Maxes[i]=max(X[BlockIndicator==i])
+  print(i)
+}
+cbind(Maxes,BlockSeq)
+plot(density(X))
+lines(density(Maxes))
+
