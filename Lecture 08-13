@@ -1,0 +1,163 @@
+options(scipen=999)
+set.seed(20)
+numsim = 10^5
+lambda = 100000
+alpha =  20
+  
+dPareto = function(x,l,a){
+  (a*(l^a))/((l+x)^(a+1))
+}
+
+pPareto = function(x,l,a){
+  1-(l/(l+x))^a
+}
+
+rPareto = function(n,l,a){
+  l/(1-runif(n,0,1))^(1/a)-l
+}
+
+dPareto(10,lambda,alpha)
+pPareto(10,lambda,alpha)
+rPareto(2,lambda,alpha)
+
+########################################
+
+X=rPareto(numsim,lambda,alpha)
+plot(density(X))
+
+M = 10000
+
+Y = ifelse(X<M,X,M)
+EY= mean(Y)
+sdY = sd(Y)
+head(Y)
+
+Z = ifelse(X<M,0,X-M)
+EZ = mean(Z)
+sdZ = sd(Z)
+head(Z)
+
+W = X[X>M]-M #Z without the 0s, what the reinsurer actually pays
+head(W)
+
+cbind(X,Y,Z)
+
+####Reinsurer - Good Info - We know Z
+
+head(Z)
+
+ZimpliedX = Z[Z>0]+M
+ZimpliedX
+
+NumBigXFromZ = length(ZimpliedX)
+NumBigXFromZ
+
+NumSmallXfromZ = length(Z[Z==0])
+NumSmallXfromZ
+
+# L   = ΠAll_info Πpart_info 
+#     = Πfx(W+M) ⨯ Πp(X<=M)
+#     = Πfx(ZIMpliedX) ⨯ (Fx(M))^(NumSmallX)
+#logL = sum(log(f()))+NumsmallX ⨯ log(Fx(M))
+
+neglogLZ = function(params){
+  -sum(log(dPareto(ZimpliedX,params[2],params[1])))-NumSmallXfromZ*log(pPareto(M,params[2],params[1]))
+}
+neglogLZ(c(10,100))
+
+mean(ZimpliedX)
+
+ExGuessZ = 5000
+sdGuessZ = sd(ZimpliedX)
+TZ = sdGuessZ^2/(ExGuessZ^2)
+aMOMZ = -2*TZ/(1-TZ)
+lMOMZ = ExGuessZ*(aMOMZ-1)
+aMOMZ;lMOMZ
+
+#Vx/EX^2 = a/(a-s)=T
+
+MLEZ = nlm(neglogLZ,c(aMOMZ,lMOMZ),typsize = c(aMOMZ,lMOMZ))
+MLEZ
+BestAlphaZ = MLEZ$estimate[1]
+BestLambdaZ = MLEZ$estimate[2]
+
+BestAlphaZ;alpha
+BestLambdaZ;lambda
+
+XsimZ = rPareto(numsim,BestLambdaZ,BestAlphaZ)
+ZsimZ = ifelse(XsimZ<M,0,XsimZ-M)
+qqplot(Z,ZsimZ)
+abline(0,1)
+
+#All we know if Y,can we get X
+
+head(Y)
+YimpliedX = Y[Y!=M]
+
+NumSmallXfromY = length(Y[Y!=M])
+
+NumBigXfromZ = length(Y[Y==M])
+
+neglogLY = function(params){
+  -sum(log(dPareto(YimpliedX,params[2],params[1])))-NumBigXfromZ*log(1-pPareto(M,params[2],params[1]))
+}
+
+ExGuessY = mean(Y)
+sdGuessY = sd(Y)*2
+TY = sdGuessY^2/(ExGuessY^2)
+aMOMY = -2*TY/(1-TY)
+lMOMY = ExGuessY*(aMOMY-1)
+aMOMY;lMOMY
+
+
+MLEY = nlm(neglogLY,c(aMOMY,lMOMY),typsize = c(aMOMY,lMOMY))
+MLEY
+BestAlphaY = MLEY$estimate[1]
+BestLambdaY = MLEY$estimate[2]
+
+BestAlphaY;alpha
+BestLambdaY;lambda
+
+XsimY = rPareto(numsim,BestLambdaY,BestAlphaY)
+YsimY = ifelse(XsimY<M,XsimY,M)
+qqplot(Y,YsimY)
+abline(0,1)
+
+
+#All we know is W
+head(W)
+
+#g(W) = fx(w+m)/(1-Fx(M))
+#L = Πg(w)
+#L = Πfx(w+m)/(1-F)^(numW)
+#logL = sum(log(fx(w+m)))-numW(1-F)
+XimpliedW = W+M
+
+NumW = length(W)
+
+neglogLW = function(params){
+  -sum(log(dPareto(XimpliedW,params[2],params[1])))+NumW*(1-pPareto(M,params[2],params[1]))
+}
+
+
+ExGuessW = mean(W)
+sdGuessW = sd(W)
+TW = sdGuessW^2/(ExGuessW^2)
+aMOMW = -2*TW/(1-TW)
+lMOMW = ExGuessW*(aMOMW-1)
+aMOMW;lMOMW
+
+
+MLEW = nlm(neglogLW,c(aMOMW,lMOMW),typsize = c(aMOMW,lMOMW))
+MLEW
+BestAlphaW = MLEW$estimate[1]
+BestLambdaW = MLEW$estimate[2]
+
+BestAlphaW;alpha
+BestLambdaW;lambda
+
+XsimW = rPareto(numsim,BestLambdaW,BestAlphaW)
+WsimW = XsimW[XsimW>M]-M
+qqplot(W,WsimW)
+abline(0,1)
+
