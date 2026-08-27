@@ -1,0 +1,70 @@
+set.seed(20)
+# N~Poiss=(500)
+# X~LogN(10,0.9)
+# Determine the required profitloading
+# to ensure profits 80% of the time
+
+lambda2=500
+mu2=10
+sigma2=0.9
+NS2=10^4 
+M=50000
+ReLoad=0.1
+
+N2=rpois(NS2,lambda2)
+plot(density(N2))
+
+S2=c()
+SI=c()
+SR=c()
+
+for (i in 1:NS2){
+  Xs2=rlnorm(N2[i],mu2,sigma2)
+  Y=ifelse(Xs2<M,Xs2,M)
+  Z=ifelse(Xs2<M,0,Xs2-M)
+  S2[i]=sum(Xs2)
+  SI[i]=sum(Y)
+  SR[i]=sum(Z)
+}
+plot(density(S2),ylim=c(0,0.000001),xlim=c(0,22*10^6))
+lines(density(SI),lty=2)
+lines(density(SR),lty=3)
+
+head(S2)
+
+ES=mean(S2)
+ES
+ESR=mean(SR)
+ESR
+
+RequiredPrem=quantile(S2,0.8)
+RequiredPrem
+
+RePrem=(1+ReLoad)*ESR
+RePrem
+
+ReqLoadF=RequiredPrem/ES-1
+ReqLoadF
+
+# What will required prem be if i had reinsurance
+# IXOL with M=50 000
+# ReLoad=0.15
+# IndLoad=0.1
+
+InsLoad=0.1
+M=50000
+
+TotalPrem=(1+InsLoad)*ES
+TotalPrem
+ProfitNoRe=TotalPrem-S2
+ProfitWithRe=TotalPrem-RePrem-SI
+
+plot(density(ProfitNoRe),ylim=c(0,10^-6))
+lines(density(ProfitWithRe),lty=2)
+
+ProbOfProfitNoRe=length(ProfitNoRe[ProfitNoRe>0])/NS2
+ProbOfProfitNoRe
+
+
+ProbOfProfitWithRe=length(ProfitWithRe[ProfitWithRe>0])/NS2
+ProbOfProfitWithRe
