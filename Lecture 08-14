@@ -1,0 +1,62 @@
+rm(list=ls())
+set.seed(20)
+
+# N~Pois(200)
+# X~Exp(1/20000)
+
+NS=10^4
+mu=200
+lambda=1/20000
+
+N=rpois(NS,mu)
+head(N)
+plot(density(N))
+
+
+S=vector(length=NS)
+
+for (i in 1:NS){
+  Xs=rexp(n=N[i],lambda)
+  S[i]=sum(Xs)
+}
+
+plot(density(S))
+
+
+head(S)
+ES=mean(S)
+ES
+sdS=sd(S)
+sdS
+
+abline(v=ES)
+
+quantile(S,0.95)
+
+ProfitLoading=0.2
+TotalPrem=(1+ProfitLoading)*ES
+TotalPrem
+
+length(S[S>TotalPrem])/NS
+
+# N~Poiss=(500)
+# X~LogN(10,0.9)
+# Determine the required profitloading
+# to ensure profits 80% of the time
+
+lambda2=500
+mu2=10
+sigma2=0.9
+NS2=10^4 
+
+N2=rpois(NS2,lambda2)
+plot(density(N2))
+
+S2=c()
+
+for (i in 1:NS2){
+  Xs2=rlnorm(N2[i],mu2,sigma2)
+  S2[i]=sum(Xs2)
+}
+plot(density(S2))
+head(S2)
